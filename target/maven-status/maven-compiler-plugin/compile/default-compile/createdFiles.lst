@@ -1,0 +1,5 @@
+com\ebolotina\moneytransfer\service\TransferService.class
+com\ebolotina\moneytransfer\model\Transfer.class
+com\ebolotina\moneytransfer\controller\TransferController.class
+com\ebolotina\moneytransfer\Main.class
+com\ebolotina\moneytransfer\model\Account.class
