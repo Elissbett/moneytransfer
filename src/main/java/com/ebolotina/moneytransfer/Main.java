@@ -25,7 +25,7 @@ public class Main {
         post("/moneytransfer","application/json", transferController::makeTransfer);
     }
 
-    private static void loadData(SessionFactory sessionFactory) {
+    public static void loadData(SessionFactory sessionFactory) {
         Account acc1 = new Account();
         Account acc2 = new Account();
         acc1.setNumber("11111111");
@@ -36,10 +36,11 @@ public class Main {
         acc2.setBalance(new BigDecimal(200));
         acc2.setCurrency("RUR");
 
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
-        session.save(acc1);
-        session.save(acc2);
-        session.getTransaction().commit();
+        try (Session session = sessionFactory.openSession()) {
+            session.beginTransaction();
+            session.save(acc1);
+            session.save(acc2);
+            session.getTransaction().commit();
+        }
     }
 }

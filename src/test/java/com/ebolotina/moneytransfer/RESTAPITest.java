@@ -1,14 +1,14 @@
 package com.ebolotina.moneytransfer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.ebolotina.moneytransfer.model.Transfer;
 import com.google.gson.Gson;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.math.BigDecimal;
 
+import static org.junit.Assert.assertEquals;
 
 public class RESTAPITest {
 
@@ -61,4 +61,5 @@ public class RESTAPITest {
         assertEquals(requestTransfer.getTargetAccount(), requestTransfer.getTargetAccount());
         assertEquals("Account not found", resultTransfer.getResponse());
     }
+
 }
