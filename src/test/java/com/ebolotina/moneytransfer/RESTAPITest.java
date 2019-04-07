@@ -24,7 +24,7 @@ public class RESTAPITest {
 
     @AfterClass
     public static void shutdown() {
-//        Main.shutdown();
+        Main.shutdown();
     }
 
     @Test
