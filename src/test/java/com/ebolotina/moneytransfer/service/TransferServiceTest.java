@@ -9,8 +9,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TransferServiceTest {
     private SessionFactory sessionFactory;
@@ -122,4 +127,64 @@ public class TransferServiceTest {
         assertEquals(targetBalance, transferService.getAccount(transfer.getTargetAccount()).getBalance());
     }
 
+   @Test
+   public void concurrencyTestSuccessfullyCompleted() throws ExecutionException, InterruptedException {
+       ExecutorService service = Executors.newFixedThreadPool(4);
+
+       Transfer transfer = createTransfer("11111111", "22222222",
+               new BigDecimal(1),"RUR");
+       Transfer reverseTransfer = createTransfer("22222222","11111111",
+               new BigDecimal(1),"RUR");
+
+       BigDecimal sourceBalance = transferService.getAccount(transfer.getSourceAccount()).getBalance();
+       BigDecimal targetBalance = transferService.getAccount(transfer.getTargetAccount()).getBalance();
+
+       List<Future<Transfer>> transfers = new ArrayList<>();
+
+       for (int i = 0; i < 100; i++) {
+           transfers.add(service.submit(() -> transferService.makeTransfer(transfer)));
+           transfers.add(service.submit(() -> transferService.makeTransfer(reverseTransfer)));
+       }
+
+       for(Future<Transfer> t: transfers) {
+           assertEquals("Successfully completed", t.get().getResponse());
+       }
+       service.shutdown();
+
+       assertEquals(sourceBalance, transferService.getAccount(transfer.getSourceAccount()).getBalance());
+       assertEquals(targetBalance, transferService.getAccount(transfer.getTargetAccount()).getBalance());
+   }
+
+    @Test
+    public void concurrencyTestNonSufficientFunds() throws ExecutionException, InterruptedException {
+        ExecutorService service = Executors.newFixedThreadPool(4);
+
+        Transfer transfer = createTransfer("11111111", "22222222",
+                new BigDecimal(1200),"RUR");
+
+        BigDecimal sourceBalance = transferService.getAccount(transfer.getSourceAccount()).getBalance();
+        BigDecimal targetBalance = transferService.getAccount(transfer.getTargetAccount()).getBalance();
+
+        BigDecimal transfersToSucceed = sourceBalance.divide(transfer.getAmount(), 0, RoundingMode.FLOOR);
+
+        List<Future<Transfer>> transfers = new ArrayList<>();
+
+        for (int i = 0; i< 5; i++) {
+            transfers.add(service.submit(() -> transferService.makeTransfer(transfer)));
+        }
+
+        for(Future<Transfer> t: transfers) {
+            String response = t.get().getResponse();
+            assertTrue(response.equals("Successfully completed")
+                    || response.equals("Non-sufficient funds"));
+        }
+        service.shutdown();
+
+        assertEquals(
+                sourceBalance.subtract(transfer.getAmount().multiply(transfersToSucceed)),
+                transferService.getAccount(transfer.getSourceAccount()).getBalance());
+        assertEquals(
+                targetBalance.add(transfer.getAmount().multiply(transfersToSucceed)),
+                transferService.getAccount(transfer.getTargetAccount()).getBalance());
+    }
 }

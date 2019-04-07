@@ -10,7 +10,10 @@ import org.hibernate.cfg.Configuration;
 
 
 import java.math.BigDecimal;
+
+import static spark.Spark.port;
 import static spark.Spark.post;
+import static spark.Spark.stop;
 
 public class Main {
     public static void main(String[] args) {
@@ -23,6 +26,10 @@ public class Main {
         TransferController transferController = new TransferController();
         transferController.setTransferService(transferService);
         post("/moneytransfer","application/json", transferController::makeTransfer);
+    }
+
+    public static void shutdown(){
+        stop();
     }
 
     public static void loadData(SessionFactory sessionFactory) {

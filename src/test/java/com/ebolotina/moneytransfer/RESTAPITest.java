@@ -4,6 +4,8 @@ import com.ebolotina.moneytransfer.model.Transfer;
 import com.google.gson.Gson;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -14,9 +16,19 @@ public class RESTAPITest {
 
     private static Gson gson = new Gson();
 
+    @BeforeClass
+    public static void setup() {
+        String[] args = {};
+        Main.main(args);
+    }
+
+    @AfterClass
+    public static void shutdown() {
+//        Main.shutdown();
+    }
+
     @Test
     public void transfer100RURSuccessful() {
-
         Transfer requestTransfer = new Transfer();
         requestTransfer.setSourceAccount("11111111");
         requestTransfer.setTargetAccount("22222222");
